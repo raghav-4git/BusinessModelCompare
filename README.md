@@ -1,2 +1,0 @@
-# BusinessModelCompare
-tool

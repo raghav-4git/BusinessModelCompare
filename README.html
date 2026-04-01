@@ -1,0 +1,845 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Model Comparison Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .metric-subtext {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .model-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s;
+        }
+
+        .model-card.winner {
+            border-color: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.2);
+        }
+
+        .model-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .model-card.winner h3::after {
+            content: " 🏆";
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-row-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .metric-row-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .winner-banner {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #856404;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid, .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Business Model Comparison Tool</h1>
+            <p>Compare Conventional Sales vs. Lease Model Financial Performance</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">Company Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="companyName">Your Company Name</label>
+                        <input type="text" id="companyName" placeholder="e.g., ABC Manufacturing">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerName">Customer Company Name</label>
+                        <input type="text" id="customerName" placeholder="e.g., XYZ Industries">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2 class="section-title">Product & Pricing Details</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="partsPerMonth">Parts Produced Per Month</label>
+                        <input type="number" id="partsPerMonth" placeholder="e.g., 1000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderCount">Overall Parts Order Count</label>
+                        <input type="number" id="orderCount" placeholder="e.g., 10000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="pricePerPart">Price Per Part (USD)</label>
+                        <input type="number" id="pricePerPart" placeholder="e.g., 150" min="0" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2 class="section-title">Warranty & Service Details (Common to Both Models)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="warrantyReturn">Average Warranty Returns (Units Per Year)</label>
+                        <input type="number" id="warrantyReturn" placeholder="e.g., 300" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="replacementCost">Replacement Cost Per Part (USD)</label>
+                        <input type="number" id="replacementCost" placeholder="e.g., 100" min="0" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2 class="section-title">Model 1: Conventional Sales Model</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="paymentFrequency">Payment Frequency</label>
+                        <select id="paymentFrequency">
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicePeriod">Service Period (Years)</label>
+                        <input type="number" id="servicePeriod" placeholder="e.g., 5" min="1" max="20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2 class="section-title">Model 2: Lease Model</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="leasePaymentFrequency">Lease Payment Frequency</label>
+                        <select id="leasePaymentFrequency">
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="leaseRate">Monthly Lease Rate Per Part (USD)</label>
+                        <input type="number" id="leaseRate" placeholder="e.g., 10" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="annualDepreciation">Annual Depreciation Rate (%)</label>
+                        <input type="number" id="annualDepreciation" placeholder="e.g., 10" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+                <div class="info-box">
+                    <p><strong>Note:</strong> Lease period is fixed at 15 years. Customer pays lease as long as parts are in market.</p>
+                    <p>If customer forecloses early, they pay the remaining value based on depreciated asset value.</p>
+                    <p>Buyout Value = Original Part Value × (1 - Depreciation Rate)^Years Elapsed</p>
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculateComparison()">Calculate & Compare Models</button>
+
+            <div class="results-section" id="resultsSection">
+                <div class="winner-banner" id="winnerBanner"></div>
+
+                <h2 class="section-title">Key Financial Metrics</h2>
+                <div class="metrics-grid" id="metricsGrid"></div>
+
+                <h2 class="section-title">Detailed Comparison</h2>
+                <div class="comparison-grid" id="comparisonGrid"></div>
+
+                <h2 class="section-title">Visual Analysis</h2>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Total Revenue Comparison</div>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Net Revenue Analysis (After Warranty Costs)</div>
+                    <canvas id="profitChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Cumulative Cash Flow Over 15 Years</div>
+                    <canvas id="cashFlowChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">ROI & Financial Indices</div>
+                    <canvas id="indicesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        function calculateComparison() {
+            // Get input values
+            const companyName = document.getElementById('companyName').value || 'Your Company';
+            const customerName = document.getElementById('customerName').value || 'Customer';
+            const partsPerMonth = parseFloat(document.getElementById('partsPerMonth').value);
+            const orderCount = parseFloat(document.getElementById('orderCount').value);
+            const pricePerPart = parseFloat(document.getElementById('pricePerPart').value);
+            const paymentFrequency = document.getElementById('paymentFrequency').value;
+            const servicePeriod = parseFloat(document.getElementById('servicePeriod').value);
+            const warrantyReturnPerYear = parseFloat(document.getElementById('warrantyReturn').value);
+            const replacementCost = parseFloat(document.getElementById('replacementCost').value);
+            const leasePaymentFrequency = document.getElementById('leasePaymentFrequency').value;
+            const leaseRate = parseFloat(document.getElementById('leaseRate').value);
+            const annualDepreciation = parseFloat(document.getElementById('annualDepreciation').value) / 100;
+
+            // Validation
+            if (!partsPerMonth || !orderCount || !pricePerPart || !servicePeriod || !leaseRate || !warrantyReturnPerYear) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            // Model 1: Conventional Sales
+            const totalRevenue1 = orderCount * pricePerPart;
+            
+            // Warranty costs over service period
+            const totalWarrantyReturns = warrantyReturnPerYear * servicePeriod;
+            const warrantyReplacementCosts = totalWarrantyReturns * replacementCost;
+            
+            // Net revenue after warranty costs
+            const netRevenue1 = totalRevenue1 - warrantyReplacementCosts;
+            
+            // Calculate payback period
+            const monthsToProduceAll = orderCount / partsPerMonth;
+            const paybackPeriod1 = paymentFrequency === 'monthly' ? monthsToProduceAll / 12 : servicePeriod;
+
+            // Model 2: Lease Model (15 years)
+            const leasePeriodYears = 15;
+            const leasePeriodMonths = leasePeriodYears * 12;
+            const monthlyLeaseRevenue = orderCount * leaseRate;
+            const totalLeaseRevenue = monthlyLeaseRevenue * leasePeriodMonths;
+            
+            // Warranty costs over 15 years for lease model
+            const leaseWarrantyReturns = warrantyReturnPerYear * leasePeriodYears;
+            const leaseWarrantyReplacementCosts = leaseWarrantyReturns * replacementCost;
+            
+            // Net revenue after warranty costs
+            const netRevenue2 = totalLeaseRevenue - leaseWarrantyReplacementCosts;
+
+            // Foreclosure scenario with depreciation
+            const averageForeclosureYear = 7; // Assume average foreclosure at 7 years
+            const monthsPaid = averageForeclosureYear * 12;
+            const leasePaidSoFar = monthlyLeaseRevenue * monthsPaid;
+            
+            // Calculate depreciated value of parts
+            const depreciatedValue = pricePerPart * Math.pow(1 - annualDepreciation, averageForeclosureYear);
+            const buyoutAmount = orderCount * depreciatedValue;
+            
+            // Warranty costs up to foreclosure year
+            const foreclosureWarrantyCosts = warrantyReturnPerYear * averageForeclosureYear * replacementCost;
+            
+            // Total revenue with foreclosure
+            const totalWithForeclosure = leasePaidSoFar + buyoutAmount - foreclosureWarrantyCosts;
+
+            // Financial Metrics
+            const roi1 = ((netRevenue1 / totalRevenue1) * 100).toFixed(2);
+            const roi2 = ((netRevenue2 / totalLeaseRevenue) * 100).toFixed(2);
+            
+            const revenuePerYear1 = netRevenue1 / servicePeriod;
+            const revenuePerYear2 = netRevenue2 / leasePeriodYears;
+
+            const breakEvenMonths1 = monthsToProduceAll;
+            const breakEvenMonths2 = 0; // Immediate revenue
+
+            // NPV calculation (simplified with 5% discount rate)
+            const discountRate = 0.05;
+            let npv1 = 0;
+            let npv2 = 0;
+            
+            for (let year = 1; year <= leasePeriodYears; year++) {
+                const yearlyRevenue1 = year <= servicePeriod ? netRevenue1 / servicePeriod : 0;
+                npv1 += yearlyRevenue1 / Math.pow(1 + discountRate, year);
+                
+                const yearlyRevenue2 = (totalLeaseRevenue / leasePeriodYears) - (leaseWarrantyReplacementCosts / leasePeriodYears);
+                npv2 += yearlyRevenue2 / Math.pow(1 + discountRate, year);
+            }
+
+            // Revenue per part metrics
+            const revenuePerPart1 = netRevenue1 / orderCount;
+            const revenuePerPart2 = netRevenue2 / orderCount;
+
+            // Cash flow over time
+            const cashFlow1 = [];
+            const cashFlow2 = [];
+            for (let year = 0; year <= leasePeriodYears; year++) {
+                if (year <= servicePeriod) {
+                    cashFlow1.push((netRevenue1 / servicePeriod) * year);
+                } else {
+                    cashFlow1.push(netRevenue1);
+                }
+                const yearWarrantyCost = warrantyReturnPerYear * year * replacementCost;
+                cashFlow2.push((monthlyLeaseRevenue * 12 * year) - yearWarrantyCost);
+            }
+
+            // Display results
+            displayMetrics(netRevenue1, netRevenue2, totalRevenue1, totalLeaseRevenue, revenuePerPart1, revenuePerPart2);
+            displayComparison({
+                model1: {
+                    grossRevenue: totalRevenue1,
+                    warrantyCosts: warrantyReplacementCosts,
+                    netRevenue: netRevenue1,
+                    roi: roi1,
+                    revenuePerYear: revenuePerYear1,
+                    payback: paybackPeriod1.toFixed(2),
+                    npv: npv1,
+                    warrantyReturns: totalWarrantyReturns,
+                    revenuePerPart: revenuePerPart1
+                },
+                model2: {
+                    grossRevenue: totalLeaseRevenue,
+                    warrantyCosts: leaseWarrantyReplacementCosts,
+                    netRevenue: netRevenue2,
+                    roi: roi2,
+                    revenuePerYear: revenuePerYear2,
+                    payback: 0,
+                    npv: npv2,
+                    warrantyReturns: leaseWarrantyReturns,
+                    foreclosureRevenue: totalWithForeclosure,
+                    depreciatedValue: depreciatedValue,
+                    buyoutAmount: buyoutAmount,
+                    revenuePerPart: revenuePerPart2
+                }
+            });
+            
+            displayCharts(totalRevenue1, totalLeaseRevenue, netRevenue1, netRevenue2, cashFlow1, cashFlow2, 
+                         roi1, roi2, npv1, npv2, revenuePerYear1, revenuePerYear2);
+            
+            const winner = netRevenue2 > netRevenue1 ? 'Lease Model' : 'Conventional Sales Model';
+            const difference = Math.abs(netRevenue2 - netRevenue1);
+            const percentageBetter = ((difference / Math.min(netRevenue1, netRevenue2)) * 100).toFixed(1);
+            
+            document.getElementById('winnerBanner').innerHTML = 
+                `🏆 Winner: ${winner}<br><small style="font-size: 0.6em;">Better by $${formatNumber(difference)} (${percentageBetter}% more revenue)</small>`;
+            
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function displayMetrics(netRevenue1, netRevenue2, grossRevenue1, grossRevenue2, revenuePerPart1, revenuePerPart2) {
+            const metricsHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Conventional Model Net Revenue</div>
+                    <div class="metric-value">$${formatNumber(netRevenue1)}</div>
+                    <div class="metric-subtext">After warranty costs</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Lease Model Net Revenue</div>
+                    <div class="metric-value">$${formatNumber(netRevenue2)}</div>
+                    <div class="metric-subtext">Over 15 years, after warranty costs</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Revenue Difference</div>
+                    <div class="metric-value" style="color: ${netRevenue2 > netRevenue1 ? '#28a745' : '#dc3545'}">
+                        ${netRevenue2 > netRevenue1 ? '+' : ''}$${formatNumber(netRevenue2 - netRevenue1)}
+                    </div>
+                    <div class="metric-subtext">${((Math.abs(netRevenue2 - netRevenue1) / Math.min(netRevenue1, netRevenue2)) * 100).toFixed(1)}% difference</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Revenue Per Part</div>
+                    <div class="metric-value">$${formatNumber(revenuePerPart1)} / $${formatNumber(revenuePerPart2)}</div>
+                    <div class="metric-subtext">Conventional / Lease</div>
+                </div>
+            `;
+            document.getElementById('metricsGrid').innerHTML = metricsHTML;
+        }
+
+        function displayComparison(data) {
+            const comparisonHTML = `
+                <div class="model-card ${data.model2.netRevenue > data.model1.netRevenue ? '' : 'winner'}">
+                    <h3>Conventional Sales Model</h3>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Gross Revenue (Parts Sold)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model1.grossRevenue)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Warranty Replacements</span>
+                        <span class="metric-row-value">${formatNumber(data.model1.warrantyReturns)} units</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Warranty Replacement Costs</span>
+                        <span class="metric-row-value">$${formatNumber(data.model1.warrantyCosts)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Net Revenue</span>
+                        <span class="metric-row-value" style="font-size: 1.2em; color: #667eea;">$${formatNumber(data.model1.netRevenue)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Revenue per Part</span>
+                        <span class="metric-row-value">$${formatNumber(data.model1.revenuePerPart)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Annual Revenue</span>
+                        <span class="metric-row-value">$${formatNumber(data.model1.revenuePerYear)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Payback Period</span>
+                        <span class="metric-row-value">${data.model1.payback} years</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">NPV (5% discount)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model1.npv)}</span>
+                    </div>
+                </div>
+                <div class="model-card ${data.model2.netRevenue > data.model1.netRevenue ? 'winner' : ''}">
+                    <h3>Lease Model (15 Years)</h3>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Gross Lease Revenue</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.grossRevenue)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Warranty Replacements</span>
+                        <span class="metric-row-value">${formatNumber(data.model2.warrantyReturns)} units</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Warranty Replacement Costs</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.warrantyCosts)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Net Revenue</span>
+                        <span class="metric-row-value" style="font-size: 1.2em; color: #667eea;">$${formatNumber(data.model2.netRevenue)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Revenue per Part (Lifecycle)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.revenuePerPart)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Annual Revenue</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.revenuePerYear)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Depreciated Value (7yr)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.depreciatedValue)}/part</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Customer Buyout Amount (7yr)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.buyoutAmount)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">Total with Foreclosure (7yr)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.foreclosureRevenue)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-row-label">NPV (5% discount)</span>
+                        <span class="metric-row-value">$${formatNumber(data.model2.npv)}</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('comparisonGrid').innerHTML = comparisonHTML;
+        }
+
+        function displayCharts(grossRevenue1, grossRevenue2, netRevenue1, netRevenue2, cashFlow1, cashFlow2, 
+                              roi1, roi2, npv1, npv2, revenuePerYear1, revenuePerYear2) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // Gross Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            charts.revenue = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Conventional Sales', 'Lease Model'],
+                    datasets: [{
+                        label: 'Gross Revenue ($)',
+                        data: [grossRevenue1, grossRevenue2],
+                        backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)'],
+                        borderColor: ['rgba(102, 126, 234, 1)', 'rgba(118, 75, 162, 1)'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + formatNumber(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Net Revenue Chart
+            const profitCtx = document.getElementById('profitChart').getContext('2d');
+            charts.profit = new Chart(profitCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Conventional Sales', 'Lease Model'],
+                    datasets: [{
+                        label: 'Net Revenue (After Warranty Costs) ($)',
+                        data: [netRevenue1, netRevenue2],
+                        backgroundColor: ['rgba(40, 167, 69, 0.8)', 'rgba(32, 201, 151, 0.8)'],
+                        borderColor: ['rgba(40, 167, 69, 1)', 'rgba(32, 201, 151, 1)'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + formatNumber(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Cash Flow Chart
+            const cashFlowCtx = document.getElementById('cashFlowChart').getContext('2d');
+            charts.cashFlow = new Chart(cashFlowCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 16}, (_, i) => `Year ${i}`),
+                    datasets: [
+                        {
+                            label: 'Conventional Sales',
+                            data: cashFlow1,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Lease Model',
+                            data: cashFlow2,
+                            borderColor: 'rgba(118, 75, 162, 1)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + formatNumber(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Financial Indices Chart
+            const indicesCtx = document.getElementById('indicesChart').getContext('2d');
+            charts.indices = new Chart(indicesCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['ROI (%)', 'Annual Revenue (scaled)', 'NPV (scaled)', 'Net Revenue (scaled)'],
+                    datasets: [
+                        {
+                            label: 'Conventional Sales',
+                            data: [
+                                parseFloat(roi1),
+                                revenuePerYear1 / 10000,
+                                npv1 / 100000,
+                                netRevenue1 / 100000
+                            ],
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Lease Model',
+                            data: [
+                                parseFloat(roi2),
+                                revenuePerYear2 / 10000,
+                                npv2 / 100000,
+                                netRevenue2 / 100000
+                            ],
+                            borderColor: 'rgba(118, 75, 162, 1)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.2)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+    </script>
+</body>
+</html>
